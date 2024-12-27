@@ -6,18 +6,14 @@ export default class Crossword
         this.placedWords = null;
     }
 
-    initializeGrid(rows, cols)
+    initializeGrid(gridSize)
     {
-        this.grid = Array.from({ length: rows }, () => Array(cols).fill(''));
+        this.grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(''));
         this.placedWords = []; // Track placed words
     }
 
     generateCrossword(words) {
-        console.log('words= ');
-        console.log(words);
         if (words.length < 1) return false;
-
-        // Place the first word in the center of the grid
         const firstWord = words[0];
         const startRow = Math.floor(this.grid.length / 2);
         const startCol = Math.floor((this.grid[0].length - firstWord.length) / 2);
@@ -35,9 +31,7 @@ export default class Crossword
     }
 
     placeWordWithIntersection(word) {
-        console.log(`Placing word: ${word}`);
         for (const { word: placedWord, row, col, isHorizontal } of this.placedWords) {
-            console.log(`Checking intersections with: ${placedWord}`);
             for (let i = 0; i < placedWord.length; i++) {
                 const intersectingLetter = placedWord[i];
                 const intersectIndex = word.indexOf(intersectingLetter);
@@ -45,9 +39,6 @@ export default class Crossword
                 if (intersectIndex !== -1) {
                     const startRow = isHorizontal ? row - intersectIndex : row + i;
                     const startCol = isHorizontal ? col + i : col - intersectIndex;
-                    console.log(
-                        `Trying to place "${word}" at row: ${startRow}, col: ${startCol}, horizontal: ${!isHorizontal}`
-                    );
                     const canPlace = this.canPlaceWord(word, startRow, startCol, !isHorizontal, intersectIndex);
     
                     if (canPlace) {

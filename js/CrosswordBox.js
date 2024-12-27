@@ -1,5 +1,5 @@
 export default class CrosswordBox {
-    constructor(scene, x, y, size, letter = '', number = 5) {
+    constructor(scene, x, y, size, letter = '', number = '') {
         this.scene = scene;
         this.container = scene.add.container(x, y);
         this.box = scene.add.rectangle(0, 0, size, size, 0xFFFFFF).setStrokeStyle(2, 0x000000);

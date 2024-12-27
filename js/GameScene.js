@@ -5,30 +5,34 @@ export default class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
         this.boxPool = []; // Box pool for rendering
+        this.placedBoxes = [] //To keep track of objects currently being used.
         this.crossword = new Crossword();
+        this.words = ['seat', 'east', 'tea','eat', 'set' ];
+        this.sceneConfig =
+        {
+            boxSize : 50
+        };
     }
 
     create() {
-        this.words = ['seat', 'east', 'tea','eat', 'set' ];
-        const longestLength = Math.max(...this.words.map(str => str.length));
-        const gridSize = longestLength * 5;
-
-        const rows = gridSize;
-        const cols = gridSize;
-
-        this.crossword.initializeGrid(rows, cols);
-
-        // Generate the crossword layout
-        if (this.crossword.generateCrossword(this.words)) {
-            const boxSize = 50; // Box size
-            this.renderGrid(boxSize); // Render the grid visually
-            console.table(this.crossword.grid); // Debugging: display the grid in the console
-        } else {
-            console.error('Failed to generate crossword');
-        }
+        this.addShuffleButton();
+        this.initializeGame();
     }
 
-    // Generate the crossword layout
+    initializeGame()
+    {
+        const longestLength = Math.max(...this.words.map(str => str.length));
+        const gridSize = longestLength *5;
+        
+        this.crossword.initializeGrid(gridSize);
+
+        if (this.crossword.generateCrossword(this.words)) {
+            this.renderGrid(this.sceneConfig.boxSize); // Render the grid visually
+        } else {
+            console.error('Failed to generate crossword. Retrying...');
+            this.regeneratePuzzle();
+        }
+    }
 
     renderGrid(boxSize) {
         const gridWidth = this.crossword.grid[0].length * boxSize;
@@ -49,16 +53,48 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    // Pool-based rendering of boxes
     placeBox(x, y, size, letter, number = null) {
         let box = this.boxPool.length > 0 ? this.boxPool.pop() : new CrosswordBox(this, x, y, size);
         box.setPosition(x, y);
         box.setLetter(letter);
         box.show();
-
+        this.placedBoxes.push(box);
         if(number)
         {
             box.setNumber(number)
         }
+    }
+
+    resetBoxes()
+    {
+        this.boxPool.push(...this.placedBoxes);
+        this.placedBoxes = [];
+        this.boxPool.forEach(box => box.hide());
+    }
+
+    addShuffleButton()
+    {
+        const button = this.add.text
+        (
+            this.cameras.main.width - 150,
+            this.cameras.main.height - 60,
+            'Change', 
+            {
+                fontSize : '32px',
+                fill: '#000',
+                backgroundColor : '#fff',
+                padding: 10,
+                align: 'center'
+
+            }
+        ).setInteractive()
+        .on('pointerdown', () => this.regeneratePuzzle())
+    }
+
+    regeneratePuzzle()
+    {
+        this.resetBoxes();
+        this.words = Phaser.Utils.Array.Shuffle(this.words);
+        this.initializeGame(); 
     }
 }
